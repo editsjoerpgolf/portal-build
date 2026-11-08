@@ -1,0 +1,24 @@
+name: Build Portal
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    container: ubuntu:20.04
+    steps:
+      - name: Install tools
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y git ca-certificates python3 build-essential pkg-config libsdl2-dev libfontconfig1-dev libopus-dev libfreetype6-dev libopenal-dev libbz2-dev libjpeg-dev libpng-dev zlib1g-dev libcurl4-openssl-dev libedit-dev
+      - name: Get source
+        run: git clone https://github.com/nillerusr/source-engine.git --recursive --depth 1
+      - name: Build
+        working-directory: source-engine
+        run: |
+          python3 ./waf configure -T release --build-games=portal --prefix=out/
+          python3 ./waf build --target=client,server
+          python3 ./waf install
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portal-arm64
+          path: source-engine/out
